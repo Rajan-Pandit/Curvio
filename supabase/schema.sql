@@ -1,9 +1,20 @@
--- Curivo — Supabase Database DDL Schema
+-- Curivo — Supabase Database DDL Schema (Idempotent Migration)
 
--- 1. Enum Types
-CREATE TYPE user_role AS ENUM ('patient', 'doctor', 'admin');
-CREATE TYPE appointment_status AS ENUM ('pending', 'confirmed', 'completed', 'cancelled');
-CREATE TYPE payment_status AS ENUM ('pending', 'paid', 'failed', 'refunded');
+-- 1. Create Enum Types safely if they do not exist
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
+        CREATE TYPE user_role AS ENUM ('patient', 'doctor', 'admin');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'appointment_status') THEN
+        CREATE TYPE appointment_status AS ENUM ('pending', 'confirmed', 'completed', 'cancelled');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payment_status') THEN
+        CREATE TYPE payment_status AS ENUM ('pending', 'paid', 'failed', 'refunded');
+    END IF;
+END $$;
 
 -- 2. Users Table
 CREATE TABLE IF NOT EXISTS users (
